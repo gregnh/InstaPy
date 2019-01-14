@@ -70,6 +70,9 @@ from .text_analytics import yandex_supported_languages
 from .browser import set_selenium_local_session
 from .browser import close_browser
 
+from .custom_tools import load_json
+from .custom_tools import save_users_followers_followed_json
+
 # import exceptions
 from selenium.common.exceptions import NoSuchElementException
 
@@ -195,7 +198,7 @@ class InstaPy:
         self.clarifai_check_video = False
         self.clarifai_proxy = None
 
-        self.potency_ratio = 1.3466
+        self.potency_ratio = -0.5
         self.delimit_by_numbers = True
 
         self.max_followers = 90000
@@ -2998,7 +3001,8 @@ class InstaPy:
                               amount=10,
                               randomize=False,
                               interact=False,
-                              sleep_delay=600):
+                              sleep_delay=600,
+                              store_locally=False):
         """ Follow the `Followers` of given users """
         if self.aborting:
             return self
@@ -3024,6 +3028,8 @@ class InstaPy:
         inap_img_init = self.inap_img
 
         self.quotient_breach = False
+
+        users_followers_stored = dict()
 
         for index, user in enumerate(usernames):
             if self.quotient_breach:
@@ -3063,6 +3069,9 @@ class InstaPy:
             self.logger.info(
                 "Grabbed {} usernames from '{}'s `Followers` to do following\n"
                     .format(len(person_list), user))
+
+            record_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+            users_followers_stored[user] = {"{}".format(record_time): []}
 
             followed_personal = 0
             simulated_unfollow = 0
@@ -3112,6 +3121,9 @@ class InstaPy:
                                                    interact)
                 sleep(1)
 
+                if person not in set(users_followers_stored[user][record_time]):
+                    users_followers_stored[user][record_time].extend([person])
+
                 if followed > 0:
                     followed_all += 1
                     followed_new += 1
@@ -3132,6 +3144,9 @@ class InstaPy:
                     self.logger.info(
                         "------=>  Followed {} new users ~sleeping about {}\n"
                         .format(followed_new, sleep_time))
+                    save_users_followers_followed_json(users_followers_stored,
+                                                       self.logfolder,
+                                                       self.logger)
                     sleep(delay_random)
                     relax_point = random.randint(7, 14)
                     followed_new = 0
