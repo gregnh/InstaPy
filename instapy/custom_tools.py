@@ -36,7 +36,7 @@ def save_users_followers_followed_json(data_dict, logfolder, logger):
 
         if not os.path.isfile(file_path):
             with interruption_handler():
-                with open(file_path, 'w') as users_followers_json
+                with open(file_path, 'w') as users_followers_json:
                     json.dump(data_dict,
                               users_followers_json,
                               indent=4)
